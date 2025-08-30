@@ -1,0 +1,5 @@
+iso/
+*.o
+kernel
+kernel.elf
+my-kernel.iso
