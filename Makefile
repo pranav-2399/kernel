@@ -1,49 +1,51 @@
-# Tools
-CP      := cp
-RM      := rm -rf
-MKDIR   := mkdir -pv
-NASM    := nasm
-CC      := i386-elf-gcc
-LD      := i386-elf-ld
-GRUBMK  := grub-mkrescue
-GRUBFILE:= grub-file
+# Cross-compiler
+CC     = i386-elf-gcc
+LD     = i386-elf-ld
+AS     = nasm
+CP     = cp
+RM     = rm -rf
+MKDIR  = mkdir -pv
 
-# Kernel / ISO names
-BIN      := kernel.elf
-CFG      := grub.cfg
-ISO_PATH := iso
-BOOT_PATH:= $(ISO_PATH)/boot
-GRUB_PATH:= $(BOOT_PATH)/grub
+# Flags
+CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -Wall -Wextra -O0
+LDFLAGS = -m elf_i386 -T linker.ld
 
-# Compiler flags
-CFLAGS := -m32 -ffreestanding -c
-LDFLAGS := -m elf_i386 -T linker.ld
+# Output
+BIN      = kernel.elf
+ISO      = my-kernel.iso
+ISO_PATH = iso
+BOOT_PATH = $(ISO_PATH)/boot
+GRUB_PATH = $(BOOT_PATH)/grub
 
-.PHONY: all
-all: bootloader kernel linker iso
-	@echo "Build completed successfully."
+# Sources
+OBJS = boot.o kernel.o isr.o ports.o
 
-# Build bootloader
-bootloader: boot.asm
-	$(NASM) -f elf32 boot.asm -o boot.o
+.PHONY: all clean run
 
-# Compile kernel
-kernel: kernel.c
-	$(CC) $(CFLAGS) kernel.c -o kernel.o
+all: $(ISO)
+	@echo "Build complete."
 
-# Link kernel + bootloader
-linker: boot.o kernel.o linker.ld
-	$(LD) $(LDFLAGS) -o $(BIN) boot.o kernel.o
+boot.o: boot.asm
+	$(AS) -f elf32 boot.asm -o $@
 
-# Create bootable ISO
-iso: $(BIN)
+isr.o: isr.asm
+	$(AS) -f elf32 isr.asm -o $@
+
+kernel.o: kernel.c
+	$(CC) $(CFLAGS) -c kernel.c -o $@
+
+$(BIN): $(OBJS) linker.ld
+	$(LD) $(LDFLAGS) -o $(BIN) $(OBJS)
+
+$(ISO): $(BIN) grub.cfg
 	$(MKDIR) $(GRUB_PATH)
-	$(CP) $(BIN) $(BOOT_PATH)/$(BIN)
-	$(CP) $(CFG) $(GRUB_PATH)
-	$(GRUBFILE) --is-x86-multiboot $(BOOT_PATH)/$(BIN)
-	$(GRUBMK) -o my-kernel.iso $(ISO_PATH)
+	$(CP) $(BIN) $(BOOT_PATH)
+	$(CP) grub.cfg $(GRUB_PATH)
+	grub-file --is-x86-multiboot $(BOOT_PATH)/$(BIN)
+	grub-mkrescue -o $(ISO) $(ISO_PATH)
 
-# Clean build artifacts
-.PHONY: clean
 clean:
-	$(RM) *.o $(BIN) *iso $(ISO_PATH)
+	$(RM) *.o $(BIN) $(ISO) $(ISO_PATH)
+
+run: $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
