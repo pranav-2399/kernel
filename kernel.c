@@ -33,9 +33,9 @@ void thread1() {
     counter1++;
     int n = counter1 % 1000;
     vga_print("Thread 1 (Up) running: ", YELLOW, 10);
-    vga_buffer[10*80 + 18] = (('0' + (n / 100) % 10) | (YELLOW << 8));
-    vga_buffer[10*80 + 19] = (('0' + (n / 10) % 10) | (YELLOW << 8));
-    vga_buffer[10*80 + 20] = (('0' + n % 10) | (YELLOW << 8));
+    vga_buffer[10*80 + 23] = (('0' + (n / 100) % 10) | (YELLOW << 8));
+    vga_buffer[10*80 + 24] = (('0' + (n / 10) % 10) | (YELLOW << 8));
+    vga_buffer[10*80 + 25] = (('0' + n % 10) | (YELLOW << 8));
 }
 
 void thread2() {
@@ -43,9 +43,9 @@ void thread2() {
     int n = counter2 % 1000;
     if (n < 0) n+= 1000;
     vga_print("Thread 2 (Down) running: ", RED, 11);
-    vga_buffer[11*80 + 18] = (('0' + (n / 100) % 10) | (RED << 8));
-    vga_buffer[11*80 + 19] = (('0' + (n / 10) % 10) | (RED << 8));
-    vga_buffer[11*80 + 20] = (('0' + n % 10) | (RED << 8));
+    vga_buffer[11*80 + 25] = (('0' + (n / 100) % 10) | (RED << 8));
+    vga_buffer[11*80 + 26] = (('0' + (n / 10) % 10) | (RED << 8));
+    vga_buffer[11*80 + 27] = (('0' + n % 10) | (RED << 8));
 }
 
 /* Scheduler */
