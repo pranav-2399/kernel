@@ -18,7 +18,7 @@ BOOT_PATH = $(ISO_PATH)/boot
 GRUB_PATH = $(BOOT_PATH)/grub
 
 # Sources
-OBJS = boot.o kernel.o isr.o ports.o
+OBJS = boot.o kernel.o isr.o ports.o threads.o interrupts.o
 
 .PHONY: all clean run
 
@@ -33,6 +33,15 @@ isr.o: isr.asm
 
 kernel.o: kernel.c
 	$(CC) $(CFLAGS) -c kernel.c -o $@
+
+ports.o: ports.c
+	$(CC) $(CFLAGS) -c ports.c -o $@
+
+threads.o: threads.c
+	$(CC) $(CFLAGS) -c threads.c -o $@
+
+interrupts.o: interrupts.c
+	$(CC) $(CFLAGS) -c interrupts.c -o $@
 
 $(BIN): $(OBJS) linker.ld
 	$(LD) $(LDFLAGS) -o $(BIN) $(OBJS)

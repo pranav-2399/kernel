@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "*.py": "python",
-    "ports.h": "c"
+    "ports.h": "c",
+    "kernel_threads.h": "c"
   }
 }

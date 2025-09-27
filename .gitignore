@@ -1,5 +1,8 @@
 iso/
+.vscode/
+
 *.o
-kernel
+
 kernel.elf
+kernel
 my-kernel.iso
