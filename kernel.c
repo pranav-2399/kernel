@@ -5,6 +5,9 @@
 # define MAX_THREADS 16
 # define STACK_SIZE 4096
 
+#define VGA_ADDRESS 0xB8000
+unsigned short *vga_buffer = (unsigned short *)VGA_ADDRESS;
+
 typedef struct {
     thread_func func;
     int priority;
@@ -48,13 +51,10 @@ void scheduler_tick() {
     schedule();
 }
 
-/* VGA definitions */
 #define VGA_ADDRESS 0xB8000
 #define YELLOW 14
 #define RED    4
 #define WHITE_ON_BLACK 0x0F
-
-unsigned short *vga_buffer = (unsigned short *)VGA_ADDRESS;
 
 void vga_print(const char *str, unsigned char color, int row){
   int index = row * 80;
@@ -64,14 +64,10 @@ void vga_print(const char *str, unsigned char color, int row){
   }
 }
 
-
-/* Kernel entry */
 void kernel_main() {
-    vga_print("Kernel with RT-like Preemptive Threads", YELLOW, 0);
-
+    vga_print("Popcorn", YELLOW, 0);
     extern void thread_a();
     extern void thread_b();
-
     register_thread(thread_b, 1);
     register_thread(thread_a, 1);
 
@@ -79,7 +75,9 @@ void kernel_main() {
     idt_install();
     timer_install();
 
-    asm volatile("sti"); // enable interrupts
+    // unmask (enable) keyboard interrupt request - setting bit 1 to 0
+    outb(0x21, inb(0x21) & ~0x02);
 
+    asm volatile("sti");
     while (1) { asm volatile("hlt");}
 }
