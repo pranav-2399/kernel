@@ -66,22 +66,22 @@ void vga_print(const char *str) {
 
 
 void kernel_main() {
-    vga_print("Popcorn");
+    // Initialize VGA
+    vga_print("Kernel Starting...\n");
 
+    // Setup interrupts
     pic_remap();
     idt_install();
     timer_install();
-
-    // unmask (enable) keyboard 
-    // interrupt request - setting bit 1 to 0
+    
+    // Enable keyboard
     outb(0x21, inb(0x21) & ~0x02);
-
     asm volatile("sti");
-    extern void vga_put_char(char);
-    extern void vga_print_prompt();
 
-    vga_print_prompt(); // printing the 1st prompt manually 
+    //volatile int c = 1 / 0;  // This will cause exception
 
-    while (1) { asm volatile("hlt"); }
-
+    // Should never reach here
+    while(1) {
+        asm volatile("hlt");
+    }
 }

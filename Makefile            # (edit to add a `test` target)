@@ -1,0 +1,9 @@
+TARGETS = all
+
+all: 
+
+test: tests/test_main.c tests/test_hello.c
+	gcc -o test_runner tests/test_main.c tests/test_hello.c test_vendor/Unity/src/Unity.c -I test_vendor/Unity/src
+
+clean:
+	rm -f test_runner
