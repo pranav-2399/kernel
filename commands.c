@@ -1,7 +1,9 @@
 #include "commands.h"
 #include "string.h"
+#include "screen.h"
 
 void vga_print(const char *str); // declare it here
+void vga_put_char(char c);
 
 void handle_command(const char *input) {
     if (input[0] == '\0') return; // ignore empty commands
@@ -14,3 +16,4 @@ void handle_command(const char *input) {
         vga_print("Unknown command\n");
     }
 }
+

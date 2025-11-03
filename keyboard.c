@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "ports.h"
 #include "commands.h"   // well add this later
+#include "screen.h"
 
 #define VGA_ADDRESS 0xB8000
 #define WHITE_ON_BLACK 0x0F

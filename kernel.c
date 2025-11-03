@@ -1,6 +1,7 @@
 #include "ports.h"
 #include "interrupts.h"
 #include "kernel_threads.h"
+#include "screen.h"
 
 # define MAX_THREADS 16
 # define STACK_SIZE 4096
@@ -65,7 +66,7 @@ void vga_print(const char *str) {
 
 
 void kernel_main() {
-    vga_print("Popcorn", YELLOW, 0);
+    vga_print("Popcorn");
 
     pic_remap();
     idt_install();
