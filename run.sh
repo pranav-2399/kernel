@@ -9,9 +9,11 @@ x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c ports.
 x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c threads.c -o threads.o
 x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c interrupts.c -o interrupts.o
 x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c keyboard.c -o keyboard.o
+x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c commands.c -o commands.o
+x86_64-elf-gcc -m32 -ffreestanding -fno-pic -fno-pie -O0 -Wall -Wextra -c string.c -o string.o
 
 echo "linker"
-x86_64-elf-ld -m elf_i386 -T linker.ld -o kernel.elf boot.o isr.o kernel.o ports.o threads.o interrupts.o keyboard.o
+x86_64-elf-ld -m elf_i386 -T linker.ld -o kernel.elf boot.o isr.o kernel.o keyboard.o ports.o threads.o interrupts.o commands.o string.o
 
 echo "running in qemu"
-qemu-system-i386 -kernel kernel.elf -serial stdio
+qemu-system-i386 -kernel kernel.elf -serial stdio 
