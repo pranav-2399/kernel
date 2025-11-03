@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "ports.h"
-#include "commands.h"   // well add this later
+#include "commands.h"
 #include "screen.h"
 
 #define VGA_ADDRESS 0xB8000
@@ -18,7 +18,6 @@ int shift_pressed = 0;
 static char input_buffer[MAX_INPUT];
 static int input_index = 0;
 
-// Lowercase map
 unsigned char scancode_to_ascii[128] = {
     0, 27, '1','2','3','4','5','6','7','8','9','0','-','=', '\b',
     '\t','q','w','e','r','t','y','u','i','o','p','[',']','\n', 0,
@@ -69,15 +68,12 @@ void vga_print_prompt() {
     new_prompt_needed = 0;
 }
 
-// =============== MAIN HANDLER ===============
 void keyboard_handler() {
     unsigned char scancode = inb(0x60);
 
-    // SHIFT handling
     if (scancode == 0x2A || scancode == 0x36) { shift_pressed = 1; outb(0x20, 0x20); return; }
     if (scancode == 0xAA || scancode == 0xB6) { shift_pressed = 0; outb(0x20, 0x20); return; }
 
-    // Key press only
     if (!(scancode & 0x80)) {
         if (new_prompt_needed) vga_print_prompt();
 
@@ -93,7 +89,7 @@ void keyboard_handler() {
         else if (c == '\n') {
             vga_put_char('\n');
             input_buffer[input_index] = '\0';
-            handle_command(input_buffer);   // <=== HERE is where Enter key is handled
+            handle_command(input_buffer);
             input_index = 0;
             new_prompt_needed = 1;
         }
@@ -105,6 +101,5 @@ void keyboard_handler() {
         }
     }
 
-    // End Of Interrupt
     outb(0x20, 0x20);
 }

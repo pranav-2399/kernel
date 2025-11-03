@@ -21,7 +21,7 @@ void thread_a() {
 
 void thread_b() {
     static int i = 0;
-    int num = i*i*i;
+    int num = i*i + (2*i);
 
     vga_buffer[11*80 + 0] = (('0' + (num / 1000)) | (RED << 8));
     vga_buffer[11*80 + 1] = (('0' + (num / 100) % 10) | (RED << 8));

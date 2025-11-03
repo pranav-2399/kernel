@@ -13,7 +13,6 @@ char* itoa(int value, char* str, int base) {
     char tmp_char;
     int tmp_value;
 
-    // handle negative numbers for base 10 only
     if (value < 0 && base == 10) {
         value = -value;
         *ptr++ = '-';
@@ -28,7 +27,6 @@ char* itoa(int value, char* str, int base) {
 
     *ptr-- = '\0';
 
-    // reverse the string (excluding sign)
     while (ptr1 < ptr) {
         tmp_char = *ptr;
         *ptr-- = *ptr1;
@@ -57,7 +55,6 @@ int atoi(const char *str) {
     int sign = 1;
     int i = 0;
 
-    // Handle optional sign
     if (str[0] == '-') {
         sign = -1;
         i++;
@@ -65,7 +62,7 @@ int atoi(const char *str) {
 
     for (; str[i] != '\0'; i++) {
         if (str[i] < '0' || str[i] > '9')
-            break; // stop at non-digit
+            break;
         res = res * 10 + (str[i] - '0');
     }
 

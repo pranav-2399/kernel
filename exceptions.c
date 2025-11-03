@@ -2,33 +2,32 @@
 #include "screen.h"
 #include "ports.h"
 
-/* Helper to halt the system after panic */
 void panic_halt(const char* message) {
     vga_print("\nKERNEL PANIC: ");
     vga_print(message);
     vga_print("\nSystem halted.\n");
 
-    asm volatile("cli"); // disable interrupts
+    asm volatile("cli");
     while (1) {
-        asm volatile("hlt"); // halt CPU forever
+        asm volatile("hlt");
     }
 }
 
-/* Read CR2 register for page fault address */
+
 static inline uint32_t read_cr2(void) {
     uint32_t val;
     __asm__ volatile("mov %%cr2, %0" : "=r"(val));
     return val;
 }
 
-/* Structure matching the pushed stack frame from ISR stubs */
+
 typedef struct regs {
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
     uint32_t int_no, err_code;
     uint32_t eip, cs, eflags, useresp, ss;
 } regs_t;
 
-/* Exception messages */
+
 static const char *exception_messages[] = {
     "Division By Zero",
     "Debug",
@@ -64,7 +63,7 @@ static const char *exception_messages[] = {
     "Reserved 31"
 };
 
-/* Print a 32-bit hex value to screen */
+
 void vga_print_hex(uint32_t val) {
     const char *hex = "0123456789ABCDEF";
     char s[9];
@@ -76,7 +75,7 @@ void vga_print_hex(uint32_t val) {
     vga_print(s);
 }
 
-/* ISR handler called from assembly */
+
 void isr_handler(regs_t *r) {
     vga_print("\n\n[][][] KERNEL EXCEPTION OCCURRED [][][]\n");
 
@@ -109,7 +108,7 @@ void isr_handler(regs_t *r) {
     vga_print("  EFLAGS: "); vga_print_hex(r->eflags);
     vga_print("\n");
 
-    if (r->int_no == 14) {  // Page Fault
+    if (r->int_no == 14) {
         uint32_t cr2 = read_cr2();
         vga_print("Page Fault at address: ");
         vga_print_hex(cr2);

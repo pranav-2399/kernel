@@ -58,7 +58,6 @@ void scheduler_tick() {
 #define WHITE_ON_BLACK 0x0F
 
 void vga_print(const char *str) {
-    // print starting from wherever the cursor currently is
     for (int i = 0; str[i]; i++) {
         vga_put_char(str[i]);
     }
@@ -66,7 +65,7 @@ void vga_print(const char *str) {
 
 void vga_print_hex(uint32_t num) {
     const char *hex_digits = "0123456789ABCDEF";
-    char hex_str[11];  // "0x" + 8 digits + null terminator
+    char hex_str[11];
     hex_str[0] = '0';
     hex_str[1] = 'x';
 
@@ -86,16 +85,18 @@ void kernel_main() {
     idt_install();
     timer_install();
 
-    // unmask (enable) keyboard 
-    // interrupt request - setting bit 1 to 0
+    extern void thread_a();
+    extern void thread_b();
+
+    register_thread(thread_b, 1); 
+    register_thread(thread_a, 2);
     outb(0x21, inb(0x21) & ~0x02);
 
     asm volatile("sti");
     extern void vga_put_char(char);
     extern void vga_print_prompt();
 
-    vga_print_prompt(); // printing the 1st prompt manually 
-
+    vga_print_prompt();
     while (1) { asm volatile("hlt"); }
 
 }

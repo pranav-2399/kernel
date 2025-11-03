@@ -3,10 +3,10 @@
 #include "screen.h"
 #include "isr.h"
 
-/* --- External assembly stubs and C handlers (defined elsewhere) --- */
-extern void idt_load(void*);            // implemented in isr.asm (idt_load expects pointer to idt_ptr)
-extern void timer_handler(void);        // timer IRQ stub in isr.asm
-extern void keyboard_handler_stub(void); // keyboard IRQ stub in isr.asm
+
+extern void idt_load(void*);
+extern void timer_handler(void);
+extern void keyboard_handler_stub(void);
 
 void isr_handler(registers_t regs);
 
@@ -15,12 +15,11 @@ void isr_handler(registers_t regs) {
     vga_print_hex(regs.int_no);
     vga_print("\n");
 
-    // Specific exception
     if (regs.int_no == 0) {
         vga_print("Divide by zero error!\n");
     }
 
-    // For testing, halt only on CPU exceptions
+    // For testing
     if (regs.int_no < 32) {
         vga_print("Exception occurred. Halting...\n");
         for (;;)
@@ -29,7 +28,6 @@ void isr_handler(registers_t regs) {
 }
 
 
-/* CPU exception stubs (defined in isr.asm) */
 extern void isr0(void);
 extern void isr1(void);
 extern void isr2(void);
@@ -63,10 +61,6 @@ extern void isr29(void);
 extern void isr30(void);
 extern void isr31(void);
 
-/* ------------------------------------------------------------------ */
-/* IDT structures                                                      */
-/* ------------------------------------------------------------------ */
-
 struct idt_entry {
     uint16_t base_low;
     uint16_t sel;
@@ -84,37 +78,23 @@ struct idt_ptr {
 static struct idt_entry idt[IDT_SIZE];
 static struct idt_ptr idtp;
 
-/* ------------------------------------------------------------------ */
-/* Helper to set a single IDT entry                                  */
-/* base is the 32-bit handler address                                 */
-/* sel is code segment selector (from get_cs())                      */
-/* flags: present(1)<<7 | DPL<<5 | type (0xE for 32-bit interrupt gate) */
-/* ------------------------------------------------------------------ */
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
-    idt[num].base_low  = (uint16_t)(base & 0xFFFF);
-    idt[num].sel       = sel;
+    idt[num].base_low  = (uint16_t)(base & 0xFFFF); // base : handler address
+    idt[num].sel       = sel; // code segment selector
     idt[num].always0   = 0;
-    idt[num].flags     = flags;
+    idt[num].flags     = flags; // various flags
     idt[num].base_high = (uint16_t)((base >> 16) & 0xFFFF);
 }
 
-/* ------------------------------------------------------------------ */
-/* Fetch current code segment selector                                */
-/* ------------------------------------------------------------------ */
 static inline uint16_t get_cs(void) {
     uint16_t cs;
     __asm__ volatile("mov %%cs, %0" : "=r"(cs));
     return cs;
 }
 
-/* ------------------------------------------------------------------ */
-/* Install IDT: fill entries and load with lidt                       */
-/* ------------------------------------------------------------------ */
 void idt_install(void) {
     idtp.limit = (sizeof(struct idt_entry) * IDT_SIZE) - 1;
     idtp.base  = (uint32_t)&idt;
-
-    /* clear IDT */
     for (int i = 0; i < IDT_SIZE; ++i) {
         idt[i].base_low  = 0;
         idt[i].sel       = 0;
@@ -125,7 +105,6 @@ void idt_install(void) {
 
     uint16_t cs = get_cs();
 
-    /* --- CPU exceptions 0..31 --- */
     idt_set_gate(0,  (uint32_t)isr0,  cs, 0x8E);
     idt_set_gate(1,  (uint32_t)isr1,  cs, 0x8E);
     idt_set_gate(2,  (uint32_t)isr2,  cs, 0x8E);
@@ -159,40 +138,28 @@ void idt_install(void) {
     idt_set_gate(30, (uint32_t)isr30, cs, 0x8E);
     idt_set_gate(31, (uint32_t)isr31, cs, 0x8E);
 
-    /* --- Hardware IRQs (remapped) --- */
     idt_set_gate(32, (uint32_t)timer_handler,         cs, 0x8E);
     idt_set_gate(33, (uint32_t)keyboard_handler_stub, cs, 0x8E);
 
-    /* load IDT */
     idt_load(&idtp);
 }
 
-/* ------------------------------------------------------------------ */
-/* PIC remapping and IRQ mask helpers                                 */
-/* ------------------------------------------------------------------ */
 void pic_remap(void) {
-    /* start init */
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
-    /* set vector offset */
-    outb(0x21, 0x20); /* master offset 0x20 (32) */
-    outb(0xA1, 0x28); /* slave  offset 0x28 (40) */
-    /* setup cascading */
+
+    outb(0x21, 0x20);
+    outb(0xA1, 0x28);
     outb(0x21, 0x04);
     outb(0xA1, 0x02);
-    /* environment info (8086 mode) */
     outb(0x21, 0x01);
     outb(0xA1, 0x01);
-    /* mask IRQs: keep IRQ0 and IRQ1 enabled (bits 0 and 1 = 0) */
-    outb(0x21, 0xFC); /* 11111100 -> mask all except 0,1 */
-    outb(0xA1, 0xFF); /* mask all on slave */
+    outb(0x21, 0xFC);
+    outb(0xA1, 0xFF);
 }
 
-/* ------------------------------------------------------------------ */
-/* PIT timer programming (keeps your existing timer_install semantics) */
-/* ------------------------------------------------------------------ */
 void timer_install(void) {
-    uint32_t divisor = 1193180 / 20; /* 20 Hz */
+    uint32_t divisor = 1193180 / 20;
     outb(0x43, 0x36);
     outb(0x40, (uint8_t)(divisor & 0xFF));
     outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));

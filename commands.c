@@ -25,7 +25,7 @@ void handle_command(const char *input) {
 
         if (b == 0) {
             vga_print("Dividing by zero...\n");
-            int result = a / b;  // will trigger exception handler
+            int result = a / b;
             (void)result;
         } else {
             int result = a / b;
