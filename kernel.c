@@ -64,6 +64,20 @@ void vga_print(const char *str) {
     }
 }
 
+void vga_print_hex(uint32_t num) {
+    const char *hex_digits = "0123456789ABCDEF";
+    char hex_str[11];  // "0x" + 8 digits + null terminator
+    hex_str[0] = '0';
+    hex_str[1] = 'x';
+
+    for (int i = 0; i < 8; i++) {
+        uint8_t nibble = (num >> ((7 - i) * 4)) & 0xF;
+        hex_str[i + 2] = hex_digits[nibble];
+    }
+    hex_str[10] = '\0';
+
+    vga_print(hex_str);
+}
 
 void kernel_main() {
     vga_print("Popcorn");

@@ -1,8 +1,10 @@
 #ifndef STRING_H
 #define STRING_H
 
+char* itoa(int value, char* str, int base);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, int n);
 int strlen(const char *s);
-
+int atoi(const char *str);
+char *strchr(const char *str, int c);
 #endif
