@@ -1,5 +1,5 @@
-# include <stdint.h>
-# include "ports.h"
+#include <stdint.h>
+#include "ports.h"
 
 struct idt_entry {
     uint16_t base_low;
@@ -29,7 +29,7 @@ void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, uns
     idt[num].base_high = (base >> 16) & 0xFFFF;
 }
 
-static inline uint16_t get_cs(void) {
+static inline uint16_t get_cs(void) { // get code segment
     uint16_t cs;
     __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
     return cs;
@@ -46,13 +46,14 @@ void idt_install() {
         idt[i].flags = 0;
         idt[i].base_high = 0;
     }
-
+    extern void keyboard_handler_stub();
+    idt_set_gate(33, (unsigned)keyboard_handler_stub, get_cs(), 0x8E);
     idt_set_gate(32, (unsigned)timer_handler, get_cs(), 0x8E);
     idt_load(&idtp);
 }
 
 void pic_remap() {
-    /* send ICW1 */
+    // send ICW 1
     outb(0x20, 0x11); outb(0xA0, 0x11);
     /* ICW2: master PIC vector offset */
     outb(0x21, 0x20);
@@ -61,9 +62,12 @@ void pic_remap() {
     /* ICW3 */
     outb(0x21, 4); outb(0xA1, 2);
     /* ICW4 */
+    // setting it to normal protected mode (normal 8086/88)
     outb(0x21, 1); outb(0xA1, 1);
-    /* mask interrupts */
-    outb(0x21, 0xFE); outb(0xA1, 0xFF);
+    
+    // mask interrupts
+    outb(0x21, 0xFC);  // 11111100 — enables IRQ0 (timer) and IRQ1 (keyboard)
+    outb(0xA1, 0xFF);  // mask all slave IRQs
 }
 
 void timer_install() {
