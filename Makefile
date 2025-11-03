@@ -1,3 +1,6 @@
+# ----------------------------------------
+# Auto-detect cross-compiler toolchain
+# ----------------------------------------
 ifeq ($(shell which i386-elf-gcc 2>/dev/null),)
     CC := x86_64-elf-gcc
     LD := x86_64-elf-ld
@@ -14,19 +17,24 @@ RM     = rm -rf
 MKDIR  = mkdir -pv
 
 # Flags
-CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -Wall -Wextra -O0
+CFLAGS  = -m32 -ffreestanding -fno-pic -fno-pie -Wall -Wextra -O0
 LDFLAGS = -m elf_i386 -T linker.ld
 
 # Output
-BIN      = kernel.elf
-ISO      = my-kernel.iso
-ISO_PATH = iso
+BIN       = kernel.elf
+ISO       = my-kernel.iso
+ISO_PATH  = iso
 BOOT_PATH = $(ISO_PATH)/boot
 GRUB_PATH = $(BOOT_PATH)/grub
 
 # Sources
-OBJS = boot.o kernel.o isr.o ports.o threads.o interrupts.o keyboard.o commands.o string.o exception.o
+OBJS = boot.o isr.o kernel.o ports.o threads.o interrupts.o keyboard.o commands.o string.o
+
 .PHONY: all clean run iso
+
+# ----------------------------------------
+# Build rules
+# ----------------------------------------
 
 all: $(BIN)
 	@echo "Build complete with toolchain: $(TOOLCHAIN)"
@@ -47,6 +55,10 @@ $(BIN): $(OBJS) linker.ld
 	@echo "Linking $@"
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
+# ----------------------------------------
+# ISO build (optional)
+# ----------------------------------------
+
 iso: $(BIN) grub.cfg
 	@echo "Building bootable ISO..."
 	$(MKDIR) $(GRUB_PATH)
@@ -56,9 +68,13 @@ iso: $(BIN) grub.cfg
 	grub-mkrescue -o $(ISO) $(ISO_PATH)
 	@echo "ISO image created: $(ISO)"
 
+# ----------------------------------------
+# Run and cleanup
+# ----------------------------------------
+
 run: $(BIN)
 	@echo "Running kernel using QEMU..."
-	qemu-system-i386 -kernel $(BIN) -serial stdio -display gtk -no-reboot -no-shutdown
+	qemu-system-i386 -kernel $(BIN) -serial stdio
 
 clean:
 	@echo "Cleaning build files..."

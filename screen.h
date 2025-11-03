@@ -6,5 +6,6 @@
 void vga_put_char(char c);
 void vga_print(const char *str);
 void vga_print_prompt();
+void vga_print_hex(uint32_t num);
 
 #endif
